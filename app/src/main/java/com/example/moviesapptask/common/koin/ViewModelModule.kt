@@ -21,7 +21,10 @@ val viewModelModule = module {
     viewModel {
         HomeViewModel(
             application = androidApplication(),
-            moviesUseCase = get()
+            moviesUseCase = get(),
+            addMovieFavouriteListUseCase = get(),
+            removeMovieFavouriteListUseCase = get(),
+            getFavouriteMoviesListUseCase = get()
         )
     }
 

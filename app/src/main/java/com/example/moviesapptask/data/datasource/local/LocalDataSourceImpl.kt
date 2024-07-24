@@ -1,14 +1,63 @@
 package com.example.moviesapptask.data.datasource.local
 
+import android.content.Context
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
 import com.example.moviesapptask.common.helper.DateTimeProvider
+import com.example.moviesapptask.common.util.PreferencesKeys
 import com.example.moviesapptask.data.cache.timedMemoryCache
 import com.example.moviesapptask.data.datasource.dto.moives.MoviesDto
 import com.example.moviesapptask.data.datasource.dto.moviedetails.MovieDetailsDto
+import com.google.gson.Gson
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.time.Duration
 
-class LocalDataSourceImpl(dateTimeProvider: DateTimeProvider) :
+class LocalDataSourceImpl(dateTimeProvider: DateTimeProvider, context: Context) :
     LocalDataSource {
+    private val Context.dataStore by preferencesDataStore(name = PreferencesKeys.PREFERENCES_NAME)
+    private val dataStore = context.dataStore
+    private val gson = Gson()
+
+    override suspend fun addMovieFavouriteList(movie: MoviesDto) {
+        dataStore.edit { preferences ->
+            val favouriteMoviesList = preferences[PreferencesKeys.FAVOURITE_MOVIES_LIST]
+            val favouriteMovies = if (favouriteMoviesList != null) {
+                gson.fromJson(favouriteMoviesList, Array<MoviesDto>::class.java).toMutableList()
+            } else {
+                mutableListOf()
+            }
+            if (!favouriteMovies.contains(movie)) {
+                favouriteMovies.add(movie)
+                preferences[PreferencesKeys.FAVOURITE_MOVIES_LIST] = gson.toJson(favouriteMovies)
+            }
+        }
+    }
+
+    override suspend fun removeMovieFavouriteList(movie: MoviesDto) {
+        dataStore.edit { preferences ->
+            val favouriteMoviesList = preferences[PreferencesKeys.FAVOURITE_MOVIES_LIST]
+            val favouriteMovies = if (favouriteMoviesList != null) {
+                gson.fromJson(favouriteMoviesList, Array<MoviesDto>::class.java).toMutableList()
+            } else {
+                mutableListOf()
+            }
+            favouriteMovies.remove(movie)
+            preferences[PreferencesKeys.FAVOURITE_MOVIES_LIST] = gson.toJson(favouriteMovies)
+        }
+    }
+
+    override suspend fun getFavouriteMoviesList(): List<MoviesDto> {
+        val favouriteMoviesList = dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.FAVOURITE_MOVIES_LIST]
+        }.first()
+        return if (favouriteMoviesList != null) {
+            gson.fromJson(favouriteMoviesList, Array<MoviesDto>::class.java).toList()
+        } else {
+            emptyList()
+        }
+    }
 
     private val discoverMoviesCache =
         timedMemoryCache<String, ArrayList<MoviesDto>>(dateTimeProvider, Duration.ofMinutes(30))

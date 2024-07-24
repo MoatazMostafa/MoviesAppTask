@@ -6,6 +6,10 @@ import com.example.moviesapptask.data.datasource.dto.moviedetails.MovieDetailsDt
 
 interface LocalDataSource {
 
+    suspend fun addMovieFavouriteList(movie: MoviesDto)
+    suspend fun removeMovieFavouriteList(movie: MoviesDto)
+    suspend fun getFavouriteMoviesList(): List<MoviesDto>
+
     fun getLocalDiscoverMoviesList(): ArrayList<MoviesDto>
     fun updateCachedLocalDiscoverMoviesList(moviesList: List<MoviesDto>)
     fun clearLocalDiscoverMoviesList()

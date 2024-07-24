@@ -5,18 +5,26 @@ import androidx.lifecycle.viewModelScope
 import com.example.moviesapptask.common.manager.navigation.MoviesNavDestination
 import com.example.moviesapptask.common.util.Resource
 import com.example.moviesapptask.domain.model.MoviesListType
+import com.example.moviesapptask.domain.usecases.movies.AddMovieFavouriteListUseCase
+import com.example.moviesapptask.domain.usecases.movies.GetFavouriteMoviesListUseCase
 import com.example.moviesapptask.domain.usecases.movies.MoviesUseCase
+import com.example.moviesapptask.domain.usecases.movies.RemoveMovieFavouriteListUseCase
 import com.example.moviesapptask.ui.shared.base.BaseViewModel
 import com.example.moviesapptask.ui.shared.uimodel.LoadingState
 import com.example.moviesapptask.ui.shared.uimodel.MoviesUIModel
 import com.example.moviesapptask.ui.shared.uimodel.toMoviesUIModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class HomeViewModel(
     application: Application,
-    private val moviesUseCase: MoviesUseCase
+    private val moviesUseCase: MoviesUseCase,
+    private val addMovieFavouriteListUseCase: AddMovieFavouriteListUseCase,
+    private val removeMovieFavouriteListUseCase: RemoveMovieFavouriteListUseCase,
+    private val getFavouriteMoviesListUseCase: GetFavouriteMoviesListUseCase,
 ) : BaseViewModel(
     application = application,
 ) {
@@ -24,12 +32,13 @@ class HomeViewModel(
     private val _discoverMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
     var discoverMoviesList = _discoverMoviesList.asStateFlow()
 
-    private val _tabsMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
-    var tabsMoviesList = _tabsMoviesList.asStateFlow()
+    private var _shownMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
+    var shownMoviesList = _shownMoviesList.asStateFlow()
 
     private val _nowPlayingMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
     private val _popularMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
     private val _upcomingMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
+    private val _favouriteMoviesList = MutableStateFlow<List<MoviesUIModel>>(emptyList())
 
     private var _selectedTabIndex = MutableStateFlow(0)
     val selectedTabIndex = _selectedTabIndex.asStateFlow()
@@ -43,8 +52,10 @@ class HomeViewModel(
     init {
         fetchDiscoverMoviesList()
         fetchNowPlayingMoviesList()
+        fetchFavouriteMoviesList()
     }
 
+    // Private functions
     private fun fetchDiscoverMoviesList() {
         viewModelScope.launch {
             _discoverLoadingState.value = LoadingState.LOADING
@@ -76,8 +87,9 @@ class HomeViewModel(
                     handleServerError(response.errorCode ?: "")
                 }
             }.also {
-                _tabsMoviesList.value = _nowPlayingMoviesList.value
+                _shownMoviesList.value = _nowPlayingMoviesList.value
                 _tabsLoadingState.value = LoadingState.DONE
+                updateShownFavouriteMoviesList()
             }
         }
     }
@@ -95,8 +107,9 @@ class HomeViewModel(
                     handleServerError(response.errorCode ?: "")
                 }
             }.also {
-                _tabsMoviesList.value = _popularMoviesList.value
+                _shownMoviesList.value = _popularMoviesList.value
                 _tabsLoadingState.value = LoadingState.DONE
+                updateShownFavouriteMoviesList()
             }
         }
     }
@@ -114,9 +127,38 @@ class HomeViewModel(
                     handleServerError(response.errorCode ?: "")
                 }
             }.also {
-                _tabsMoviesList.value = _upcomingMoviesList.value
+                _shownMoviesList.value = _upcomingMoviesList.value
                 _tabsLoadingState.value = LoadingState.DONE
+                updateShownFavouriteMoviesList()
             }
+        }
+    }
+
+    private fun fetchFavouriteMoviesList() {
+        viewModelScope.launch {
+            _favouriteMoviesList.value = getFavouriteMoviesListUseCase.invoke()
+            updateShownFavouriteMoviesList()
+        }
+    }
+
+    private fun updateShownFavouriteMoviesList() {
+        _shownMoviesList.value.map {
+            val favouriteMovie = _favouriteMoviesList.value.firstOrNull { item -> item.id == it.id }
+            if (favouriteMovie != null) {
+                it.isFavorite = true
+            }
+        }
+    }
+
+    // Public functions
+    fun onFavouriteClick(movie: MoviesUIModel, isFavourite: Boolean) {
+        viewModelScope.launch {
+            if (isFavourite) {
+                removeMovieFavouriteListUseCase.invoke(movie)
+            } else {
+                addMovieFavouriteListUseCase.invoke(movie)
+            }
+            fetchFavouriteMoviesList()
         }
     }
 

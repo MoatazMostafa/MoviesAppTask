@@ -49,3 +49,50 @@ fun MovieDetailsDto.toMovieDetailsDomainModel(): MovieDetailsDomainModel =
         voteAverage,
         voteCount
     )
+
+fun MoviesDomainModel.toMoviesDto(): MoviesDto =
+    MoviesDto(
+        adult,
+        backdropPath,
+        genreIds,
+        id,
+        originalLanguage,
+        originalTitle,
+        overview,
+        popularity,
+        posterPath,
+        releaseDate,
+        title,
+        video,
+        voteAverage,
+        voteCount
+    )
+
+fun MovieDetailsDomainModel.toMovieDetailsDto(): MovieDetailsDto =
+    MovieDetailsDto(
+        adult,
+        backdropPath,
+        belongsToCollection,
+        budget,
+        genres,
+        homepage,
+        id,
+        imdbId,
+        originalLanguage,
+        originalTitle,
+        overview,
+        popularity,
+        posterPath,
+        productionCompanies,
+        productionCountries,
+        releaseDate,
+        revenue,
+        runtime,
+        spokenLanguages,
+        status,
+        tagline,
+        title,
+        video,
+        voteAverage,
+        voteCount
+    )

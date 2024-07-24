@@ -23,6 +23,6 @@ val dataSourceModule = module {
     }
 
     single<LocalDataSource> {
-        LocalDataSourceImpl(dateTimeProvider = get())
+        LocalDataSourceImpl(dateTimeProvider = get(), context = get())
     }
 }

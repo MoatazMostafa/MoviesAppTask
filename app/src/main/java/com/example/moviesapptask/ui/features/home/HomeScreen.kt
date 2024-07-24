@@ -17,8 +17,9 @@ fun HomeScreen(
             discoverLoadingState = homeViewModel.discoverLoadingStateValue.collectAsState().value,
             tabsLoadingState = homeViewModel.tabsLoadingStateValue.collectAsState().value,
             discoverMoviesList = homeViewModel.discoverMoviesList.collectAsState().value,
-            tabsMoviesList = homeViewModel.tabsMoviesList.collectAsState().value,
+            shownMoviesList = homeViewModel.shownMoviesList.collectAsState().value,
             selectedTabIndex = homeViewModel.selectedTabIndex.collectAsState().value,
+            onFavouriteClick = homeViewModel::onFavouriteClick,
             onSelectTab = homeViewModel::onTabSelected,
             onMovieSelected = homeViewModel::onMovieSelected,
 

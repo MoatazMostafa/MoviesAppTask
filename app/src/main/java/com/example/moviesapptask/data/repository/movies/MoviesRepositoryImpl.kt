@@ -6,6 +6,7 @@ import com.example.moviesapptask.data.datasource.remote.movies.MoviesDataSource
 import com.example.moviesapptask.domain.model.MoviesDomainModel
 import com.example.moviesapptask.domain.model.MoviesListType
 import com.example.moviesapptask.domain.model.toMoviesDomainModel
+import com.example.moviesapptask.domain.model.toMoviesDto
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,6 +19,17 @@ class MoviesRepositoryImpl(
 ) : MoviesRepository {
     private val maxPageNumber = 3
 
+    override suspend fun addMovieFavouriteList(movie: MoviesDomainModel) {
+        localDataSource.addMovieFavouriteList(movie.toMoviesDto())
+    }
+
+    override suspend fun removeMovieFavouriteList(movie: MoviesDomainModel) {
+        localDataSource.removeMovieFavouriteList(movie.toMoviesDto())
+    }
+
+    override suspend fun getFavouriteMoviesList(): List<MoviesDomainModel> =
+        localDataSource.getFavouriteMoviesList().map { it.toMoviesDomainModel() }
+
     override suspend fun getMoviesList(moviesListType: MoviesListType): Resource<List<MoviesDomainModel>> =
         when (moviesListType) {
             MoviesListType.DISCOVER -> getDiscoverMovies()
@@ -29,16 +41,15 @@ class MoviesRepositoryImpl(
     override suspend fun getDiscoverMovies(): Resource<List<MoviesDomainModel>> =
         withContext(ioDispatcher) {
             var page = localDataSource.getDiscoverLoadedPage()
-            var totalPages = page + 1
-            while (page < totalPages && page <= maxPageNumber) {
+            while (page <= maxPageNumber) {
                 when (val response = remoteMoviesDataSource.getDiscoverMovies(page)) {
                     is Resource.Success -> {
-                        totalPages = response.data?.totalPages ?: 1
                         localDataSource.updateCachedLocalDiscoverMoviesList(
                             response.data?.movies ?: emptyList()
                         )
                         localDataSource.setDiscoverLoadedPage(page)
                     }
+
                     else -> {
                         return@withContext Resource.Error(
                             errorCode = response.errorCode ?: "",
@@ -56,16 +67,15 @@ class MoviesRepositoryImpl(
     override suspend fun getNowPlayingMovies(): Resource<List<MoviesDomainModel>> =
         withContext(ioDispatcher) {
             var page = localDataSource.getNowPlayingLoadedPage()
-            var totalPages = page + 1
-            while (page < totalPages && page <= maxPageNumber) {
+            while (page <= maxPageNumber) {
                 when (val response = remoteMoviesDataSource.getNowPlayingMovies(page)) {
                     is Resource.Success -> {
-                        totalPages = response.data?.totalPages ?: 1
                         localDataSource.updateCachedLocalNowPlayingMoviesList(
                             response.data?.movies ?: emptyList()
                         )
                         localDataSource.setNowPlayingLoadedPage(page)
                     }
+
                     else -> {
                         return@withContext Resource.Error(
                             errorCode = response.errorCode ?: "",
@@ -83,16 +93,15 @@ class MoviesRepositoryImpl(
     override suspend fun getPopularMovies(): Resource<List<MoviesDomainModel>> =
         withContext(ioDispatcher) {
             var page = localDataSource.getPopularLoadedPage()
-            var totalPages = page + 1
-            while (page < totalPages && page <= maxPageNumber) {
+            while (page <= maxPageNumber) {
                 when (val response = remoteMoviesDataSource.getPopularMovies(page)) {
                     is Resource.Success -> {
-                        totalPages = response.data?.totalPages ?: 1
                         localDataSource.updateCachedLocalPopularMoviesList(
                             response.data?.movies ?: emptyList()
                         )
                         localDataSource.setPopularLoadedPage(page)
                     }
+
                     else -> {
                         return@withContext Resource.Error(
                             errorCode = response.errorCode ?: "",
@@ -109,16 +118,15 @@ class MoviesRepositoryImpl(
     override suspend fun getUpcomingMovies(): Resource<List<MoviesDomainModel>> =
         withContext(ioDispatcher) {
             var page = localDataSource.getUpcomingLoadedPage()
-            var totalPages = page + 1
-            while (page < totalPages && page <= maxPageNumber) {
+            while (page <= maxPageNumber) {
                 when (val response = remoteMoviesDataSource.getUpcomingMovies(page)) {
                     is Resource.Success -> {
-                        totalPages = response.data?.totalPages ?: 1
                         localDataSource.updateCachedLocalUpcomingMoviesList(
                             response.data?.movies ?: emptyList()
                         )
                         localDataSource.setUpcomingLoadedPage(page)
                     }
+
                     else -> {
                         return@withContext Resource.Error(
                             errorCode = response.errorCode ?: "",

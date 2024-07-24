@@ -7,7 +7,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.moviesapptask.R
 import com.example.moviesapptask.ui.shared.composables.TabsContent
-import com.example.moviesapptask.ui.shared.composables.loading.GeneralLoading
 import com.example.moviesapptask.ui.shared.uimodel.LoadingState
 import com.example.moviesapptask.ui.shared.uimodel.MoviesUIModel
 import com.example.moviesapptask.ui.shared.uimodel.moviesListItemMock
@@ -19,10 +18,11 @@ fun HomeContent(
     discoverLoadingState: LoadingState,
     tabsLoadingState: LoadingState,
     discoverMoviesList: List<MoviesUIModel>,
-    tabsMoviesList: List<MoviesUIModel>,
+    shownMoviesList: List<MoviesUIModel>,
     onSelectTab: (Int) -> Unit,
     selectedTabIndex: Int,
-    onMovieSelected: (String) -> Unit
+    onMovieSelected: (String) -> Unit,
+    onFavouriteClick: (MoviesUIModel, Boolean) -> Unit
 ) {
     Column(modifier = modifier) {
 
@@ -40,10 +40,12 @@ fun HomeContent(
             ),
             onSelectTab
         )
+
         VerticalMoviesListSection(
-            movieList = tabsMoviesList,
+            movieList = shownMoviesList,
             loadingState = tabsLoadingState,
-            onMovieSelected = onMovieSelected
+            onMovieSelected = onMovieSelected,
+            onFavouriteClick = onFavouriteClick
         )
     }
 }
@@ -56,10 +58,11 @@ fun MovieContentPreview() {
             discoverLoadingState = LoadingState.DONE,
             tabsLoadingState = LoadingState.DONE,
             discoverMoviesList = listOf(moviesListItemMock(), moviesListItemMock()),
-            tabsMoviesList = listOf(moviesListItemMock(), moviesListItemMock()),
+            shownMoviesList = listOf(moviesListItemMock(), moviesListItemMock()),
             onSelectTab = { },
             selectedTabIndex = 1,
             onMovieSelected = { },
+            onFavouriteClick = { _, _ ->}
         )
     }
 }
